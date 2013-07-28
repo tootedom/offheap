@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -18,6 +20,14 @@ import java.util.regex.Pattern;
  *
  */
 public class CalcUsage {
+
+    public static class FileDataSizeComparable implements Comparator<FileData> {
+
+        @Override
+        public int compare(FileData o1, FileData o2) {
+            return (o1.getMappedSize()>o2.getMappedSize() ? -1 : (o1.getMappedSize()==o2.getMappedSize() ? 0 : 1));
+        }
+    }
 
     public static class FileData {
         public static final ConcurrentHashMap<String,FileData> MAPPED_FILES = new ConcurrentHashMap<String, FileData>(1024);
@@ -35,6 +45,7 @@ public class CalcUsage {
 
         public String toString() {
             StringBuilder b = new StringBuilder(100);
+            b.append("                ");
             b.append(mappedSize).append('\t').append('\t').append('\t');
             b.append(name);
             return b.toString();
@@ -224,8 +235,14 @@ public class CalcUsage {
 
         System.out.println(d);
         System.out.println("Mapped File Info:");
+        List<FileData> files = new ArrayList<FileData>(FileData.MAPPED_FILES.size());
         for(FileData file : FileData.MAPPED_FILES.values()) {
-            System.out.println(file);
+            files.add(file);
+        }
+
+        Collections.sort(files,new FileDataSizeComparable());
+        for(FileData f : files) {
+            System.out.println(f);
         }
     }
 }
